@@ -1,5 +1,7 @@
-
 import React from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { LogIn, User } from "lucide-react";
 
 type Question = {
   id: number;
@@ -98,6 +100,8 @@ const QuestionCard = ({ question }: { question: Question }) => (
 );
 
 const Index = () => {
+  const { user, profile, loading } = useAuth();
+
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8 max-w-4xl mx-auto">
       <header className="mb-8 text-center">
@@ -108,6 +112,24 @@ const Index = () => {
           Forum tanya jawab untuk programmer Indonesia. Semangat Gotong Royong
           Koding!
         </p>
+        <div className="mt-4 flex justify-center items-center space-x-3">
+          {!loading && !user && (
+            <Link to="/auth" className="inline-flex items-center px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium shadow transition-colors">
+              <LogIn className="w-4 h-4 mr-2" /> Masuk / Daftar
+            </Link>
+          )}
+          {!loading && user && (
+            <Link to="/dashboard" className="inline-flex items-center px-4 py-2 rounded bg-green-600 hover:bg-green-700 text-white font-medium shadow transition-colors">
+              <User className="w-4 h-4 mr-2" /> Profil
+            </Link>
+          )}
+          <Link
+            to="/netlify-demo"
+            className="inline-flex items-center px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium shadow transition-colors border border-gray-200"
+          >
+            Netlify Function
+          </Link>
+        </div>
       </header>
       <section>
         <h2 className="text-xl font-bold mb-4">Pertanyaan Terbaru:</h2>
@@ -128,4 +150,3 @@ const Index = () => {
 };
 
 export default Index;
-
