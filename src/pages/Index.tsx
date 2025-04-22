@@ -2,7 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { LogIn, User } from "lucide-react";
-
 type Question = {
   id: number;
   title: string;
@@ -14,57 +13,56 @@ type Question = {
   tags: string[];
   answersCount: number;
 };
-
-const questions: Question[] = [
-  {
-    id: 1,
-    title: "Bagaimana cara parsing JSON kompleks di Golang?",
-    askedBy: {
-      username: "budi_dev",
-      reputation: 250,
-      badge: "Programmer Handal",
-    },
-    tags: ["golang", "json", "parsing"],
-    answersCount: 2,
+const questions: Question[] = [{
+  id: 1,
+  title: "Bagaimana cara parsing JSON kompleks di Golang?",
+  askedBy: {
+    username: "budi_dev",
+    reputation: 250,
+    badge: "Programmer Handal"
   },
-  {
-    id: 2,
-    title: "Error 'CORS policy' saat request API dari frontend React ke backend Spring Boot?",
-    askedBy: {
-      username: "siti_coder",
-      reputation: 510,
-      badge: "Pahlawan Backend",
-    },
-    tags: ["react", "spring-boot", "java", "cors", "api"],
-    answersCount: 3,
+  tags: ["golang", "json", "parsing"],
+  answersCount: 2
+}, {
+  id: 2,
+  title: "Error 'CORS policy' saat request API dari frontend React ke backend Spring Boot?",
+  askedBy: {
+    username: "siti_coder",
+    reputation: 510,
+    badge: "Pahlawan Backend"
   },
-  {
-    id: 3,
-    title: "Cara terbaik deploy aplikasi Node.js ke cloud service lokal (misal Biznet Gio)?",
-    askedBy: {
-      username: "agus_infra",
-      reputation: 120,
-      badge: "Pemula Kode",
-    },
-    tags: ["nodejs", "deployment", "cloud", "biznet-gio", "indonesia"],
-    answersCount: 1,
+  tags: ["react", "spring-boot", "java", "cors", "api"],
+  answersCount: 3
+}, {
+  id: 3,
+  title: "Cara terbaik deploy aplikasi Node.js ke cloud service lokal (misal Biznet Gio)?",
+  askedBy: {
+    username: "agus_infra",
+    reputation: 120,
+    badge: "Pemula Kode"
   },
-];
-
-const Badge = ({ badge }: { badge: string }) => (
-  <span className="ml-2 inline-block rounded bg-green-100 text-green-800 px-2 py-0.5 text-xs font-semibold">
+  tags: ["nodejs", "deployment", "cloud", "biznet-gio", "indonesia"],
+  answersCount: 1
+}];
+const Badge = ({
+  badge
+}: {
+  badge: string;
+}) => <span className="ml-2 inline-block rounded bg-green-100 text-green-800 px-2 py-0.5 text-xs font-semibold">
     {badge}
-  </span>
-);
-
-const Tag = ({ tag }: { tag: string }) => (
-  <span className="mr-2 mb-1 inline-block rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-700">
+  </span>;
+const Tag = ({
+  tag
+}: {
+  tag: string;
+}) => <span className="mr-2 mb-1 inline-block rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-700">
     {tag}
-  </span>
-);
-
-const QuestionCard = ({ question }: { question: Question }) => (
-  <div className="bg-white rounded-lg shadow-sm p-5 mb-4 hover:shadow-md transition-shadow cursor-pointer">
+  </span>;
+const QuestionCard = ({
+  question
+}: {
+  question: Question;
+}) => <div className="bg-white rounded-lg shadow-sm p-5 mb-4 hover:shadow-md transition-shadow cursor-pointer">
     <h3 className="text-lg font-semibold text-gray-900">{question.title}</h3>
     <div className="flex items-center mt-2 text-sm text-gray-600">
       <div>
@@ -73,15 +71,7 @@ const QuestionCard = ({ question }: { question: Question }) => (
           {question.askedBy.username}
         </span>{" "}
         (Rep:{" "}
-        <span
-          className={`font-semibold ${
-            question.askedBy.reputation >= 500
-              ? "text-green-600"
-              : question.askedBy.reputation >= 200
-              ? "text-yellow-700"
-              : "text-gray-700"
-          }`}
-        >
+        <span className={`font-semibold ${question.askedBy.reputation >= 500 ? "text-green-600" : question.askedBy.reputation >= 200 ? "text-yellow-700" : "text-gray-700"}`}>
           {question.askedBy.reputation}
         </span>
         )
@@ -89,21 +79,19 @@ const QuestionCard = ({ question }: { question: Question }) => (
       </div>
     </div>
     <div className="mt-2 flex flex-wrap">
-      {question.tags.map((tag) => (
-        <Tag key={tag} tag={tag} />
-      ))}
+      {question.tags.map(tag => <Tag key={tag} tag={tag} />)}
     </div>
     <div className="mt-3 text-sm font-medium text-blue-600">
       Jawaban: {question.answersCount}
     </div>
-  </div>
-);
-
+  </div>;
 const Index = () => {
-  const { user, profile, loading } = useAuth();
-
-  return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+  const {
+    user,
+    profile,
+    loading
+  } = useAuth();
+  return <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8 max-w-4xl mx-auto">
       <header className="mb-8 text-center">
         <h1 className="text-3xl font-extrabold text-gray-900 mb-1">
           KodeNusantara 🇮🇩
@@ -113,40 +101,24 @@ const Index = () => {
           Koding!
         </p>
         <div className="mt-4 flex justify-center items-center space-x-3">
-          {!loading && !user && (
-            <Link to="/auth" className="inline-flex items-center px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium shadow transition-colors">
+          {!loading && !user && <Link to="/auth" className="inline-flex items-center px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium shadow transition-colors">
               <LogIn className="w-4 h-4 mr-2" /> Masuk / Daftar
-            </Link>
-          )}
-          {!loading && user && (
-            <Link to="/dashboard" className="inline-flex items-center px-4 py-2 rounded bg-green-600 hover:bg-green-700 text-white font-medium shadow transition-colors">
+            </Link>}
+          {!loading && user && <Link to="/dashboard" className="inline-flex items-center px-4 py-2 rounded bg-green-600 hover:bg-green-700 text-white font-medium shadow transition-colors">
               <User className="w-4 h-4 mr-2" /> Profil
-            </Link>
-          )}
-          <Link
-            to="/netlify-demo"
-            className="inline-flex items-center px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium shadow transition-colors border border-gray-200"
-          >
-            Netlify Function
-          </Link>
+            </Link>}
+          
         </div>
       </header>
       <section>
         <h2 className="text-xl font-bold mb-4">Pertanyaan Terbaru:</h2>
-        {questions.map((q) => (
-          <QuestionCard key={q.id} question={q} />
-        ))}
+        {questions.map(q => <QuestionCard key={q.id} question={q} />)}
       </section>
       <section className="mt-12 text-center">
-        <button
-          type="button"
-          className="inline-block rounded bg-red-600 px-6 py-3 text-white font-semibold shadow-md hover:bg-red-700 transition-colors"
-        >
+        <button type="button" className="inline-block rounded bg-red-600 px-6 py-3 text-white font-semibold shadow-md hover:bg-red-700 transition-colors">
           + Tanya Pertanyaan Baru
         </button>
       </section>
-    </main>
-  );
+    </main>;
 };
-
 export default Index;
