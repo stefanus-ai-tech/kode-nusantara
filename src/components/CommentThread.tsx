@@ -1,11 +1,10 @@
-
-import React, { useState, useMemo } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { ThumbsUp, CornerDownRight } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
+import React, { useState, useMemo, useCallback } from 'react'; // Import useCallback
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { ThumbsUp, CornerDownRight } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 type CommentDB = {
   id: string;
@@ -30,16 +29,16 @@ type Profile = {
 
 const fetchComments = async (questionId: number): Promise<CommentDB[]> => {
   const { data, error } = await supabase
-    .from("comments")
-    .select("*")
-    .eq("question_id", questionId)
-    .order("created_at", { ascending: true });
+    .from('comments')
+    .select('*')
+    .eq('question_id', questionId)
+    .order('created_at', { ascending: true });
   if (error) throw error;
   return data;
 };
 
 const fetchLikes = async (): Promise<Like[]> => {
-  const { data, error } = await supabase.from("likes").select("*");
+  const { data, error } = await supabase.from('likes').select('*');
   if (error) return [];
   return data;
 };
@@ -47,9 +46,9 @@ const fetchLikes = async (): Promise<Like[]> => {
 const fetchProfiles = async (userIds: string[]): Promise<Profile[]> => {
   if (userIds.length === 0) return [];
   const { data, error } = await supabase
-    .from("profiles")
-    .select("id,username,avatar_url")
-    .in("id", userIds);
+    .from('profiles')
+    .select('id,username,avatar_url')
+    .in('id', userIds);
   if (error) return [];
   return data as Profile[];
 };
@@ -60,13 +59,13 @@ const CommentThread = ({ questionId }: { questionId: number }) => {
 
   // Top-level comments and thread
   const { data: comments = [], isLoading } = useQuery({
-    queryKey: ["comments", questionId],
+    queryKey: ['comments', questionId],
     queryFn: () => fetchComments(questionId),
   });
 
   // Likes for current page
   const { data: likes = [] } = useQuery({
-    queryKey: ["likes", questionId],
+    queryKey: ['likes', questionId],
     queryFn: fetchLikes,
   });
 
@@ -76,7 +75,7 @@ const CommentThread = ({ questionId }: { questionId: number }) => {
     [comments]
   );
   const { data: profiles = [] } = useQuery({
-    queryKey: ["commenters", userIds.join("-")],
+    queryKey: ['commenters', userIds.join('-')],
     queryFn: () => fetchProfiles(userIds),
     enabled: userIds.length > 0,
   });
@@ -95,54 +94,54 @@ const CommentThread = ({ questionId }: { questionId: number }) => {
   // Like handlers
   const likeMutation = useMutation({
     mutationFn: async (commentId: string) => {
-      if (!user) throw new Error("Harus login");
+      if (!user) throw new Error('Harus login');
       // Is liked?
       const existing = likes.find(
         (l) => l.comment_id === commentId && l.user_id === user.id
       );
       if (existing) {
-        await supabase
-          .from("likes")
-          .delete()
-          .eq("id", existing.id);
+        await supabase.from('likes').delete().eq('id', existing.id);
       } else {
-        await supabase.from("likes").insert({
+        await supabase.from('likes').insert({
           user_id: user.id,
           comment_id: commentId,
         });
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["likes", questionId] });
+      queryClient.invalidateQueries({ queryKey: ['likes', questionId] });
     },
   });
 
   // Add comment/reply
   const addCommentMutation = useMutation({
     mutationFn: async (input: { content: string; parentId: string | null }) => {
-      if (!user) throw new Error("Harus login");
-      await supabase.from("comments").insert({
+      if (!user) throw new Error('Harus login');
+      await supabase.from('comments').insert({
         content: input.content,
         user_id: user.id,
         question_id: questionId,
         parent_id: input.parentId,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["comments", questionId] });
-      setReplying({});
-      setReplyText("");
-      setNewComment("");
+    // Further simplified onSuccess - only invalidate queries and clear top-level input
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['comments', questionId] });
+      // Clear top-level comment box if it was a new comment
+      if (!variables.parentId) {
+        setNewComment('');
+      }
+      // Individual reply boxes handle their own closing/clearing state
     },
   });
 
-  const [replying, setReplying] = useState<{ [cid: string]: boolean }>({});
-  const [replyText, setReplyText] = useState<string>("");
-  const [newComment, setNewComment] = useState<string>("");
+  // Remove replying state - CommentNode will manage its own open/closed state
+  const [newComment, setNewComment] = useState<string>('');
 
   // Like UI helper
   const isLikedByMe = (commentId: string) =>
-    !!user && likes.some((l) => l.comment_id === commentId && l.user_id === user.id);
+    !!user &&
+    likes.some((l) => l.comment_id === commentId && l.user_id === user.id);
 
   // Like count
   const likeCount = (commentId: string) =>
@@ -150,14 +149,34 @@ const CommentThread = ({ questionId }: { questionId: number }) => {
 
   // Post new top-level comment
   const handleNewComment = () => {
-    if (!user) return alert("Harus login untuk komentar!");
+    if (!user) return alert('Harus login untuk komentar!');
     if (!newComment.trim()) return;
     addCommentMutation.mutate({ content: newComment, parentId: null });
   };
 
-  function CommentNode({ comment }: { comment: CommentDB }) {
+  // No longer need handleToggleReply here
+
+  // Define props interface for CommentNode - simplified further
+  interface CommentNodeProps {
+    comment: CommentDB;
+    // No props needed for reply state management
+  }
+
+  // Wrap CommentNode with React.memo and update props
+  const CommentNode = React.memo(function CommentNode({
+    comment,
+  }: CommentNodeProps) {
     const commenter = profileMap[comment.user_id];
     const children = buildThread(comment.id);
+    // Add local state for the reply text within this specific node
+    const [localReplyText, setLocalReplyText] = useState<string>('');
+    // Add local state for whether this node's reply box is open
+    const [isReplyingLocally, setIsReplyingLocally] = useState<boolean>(false);
+
+    // Local function to toggle the reply box for this node
+    const toggleReplyLocally = () => {
+      setIsReplyingLocally((prev) => !prev);
+    };
     return (
       <div className="mb-4 pl-1 border-l-2 border-[#efd8a1]">
         <div className="flex items-start gap-2">
@@ -169,17 +188,17 @@ const CommentThread = ({ questionId }: { questionId: number }) => {
             />
           ) : (
             <div className="w-7 h-7 rounded-full bg-[#f4e1b8] flex items-center justify-center font-bold text-[#b88134]">
-              {commenter?.username?.charAt(0)?.toUpperCase() || "?"}
+              {commenter?.username?.charAt(0)?.toUpperCase() || '?'}
             </div>
           )}
 
           <div className="flex-1">
             <div className="text-xs font-semibold text-[#865622] flex items-center gap-2">
-              @{commenter?.username || "user"}
+              @{commenter?.username || 'user'}
               <span className="text-[10px] font-normal text-[#c09a57] ml-2">
-                {new Date(comment.created_at).toLocaleString("id-ID", {
-                  dateStyle: "short",
-                  timeStyle: "short",
+                {new Date(comment.created_at).toLocaleString('id-ID', {
+                  dateStyle: 'short',
+                  timeStyle: 'short',
                 })}
               </span>
             </div>
@@ -187,13 +206,13 @@ const CommentThread = ({ questionId }: { questionId: number }) => {
             <div className="flex items-center gap-2 mt-1">
               <Button
                 size="sm"
-                variant={isLikedByMe(comment.id) ? "default" : "outline"}
-                className={isLikedByMe(comment.id)
-                  ? "bg-[#b88134] text-white border-[#b88134]"
-                  : "border-[#b88134] text-[#b88134] hover:bg-[#f4e1b8]"
+                variant={isLikedByMe(comment.id) ? 'default' : 'outline'}
+                className={
+                  isLikedByMe(comment.id)
+                    ? 'bg-[#b88134] text-white border-[#b88134]'
+                    : 'border-[#b88134] text-[#b88134] hover:bg-[#f4e1b8]'
                 }
-                onClick={() => likeMutation.mutate(comment.id)}
-              >
+                onClick={() => likeMutation.mutate(comment.id)}>
                 <ThumbsUp size={15} className="mr-1" />
                 {likeCount(comment.id)}
               </Button>
@@ -202,53 +221,59 @@ const CommentThread = ({ questionId }: { questionId: number }) => {
                   size="sm"
                   variant="ghost"
                   className="text-xs text-[#865622] px-2 underline"
-                  onClick={() =>
-                    setReplying((v) => ({
-                      ...v,
-                      [comment.id]: !v[comment.id],
-                    }))
-                  }
-                >
+                  // Use the local toggle function
+                  onClick={toggleReplyLocally}>
                   <CornerDownRight className="mr-1" size={13} />
                   Balas
                 </Button>
               )}
             </div>
-            {replying[comment.id] && (
+            {/* Use the local isReplyingLocally state */}
+            {isReplyingLocally && (
               <div className="mt-2">
                 <Textarea
-                  value={replyText}
+                  // Use the local state for this comment's reply
+                  value={localReplyText}
                   className="mb-1"
                   rows={2}
                   placeholder="Tulis balasan..."
-                  onChange={(e) => setReplyText(e.target.value)}
+                  // Update the local state for this comment's reply
+                  onChange={(e) => setLocalReplyText(e.target.value)}
+                  // Auto-focus when the reply box appears might be helpful
+                  autoFocus
                 />
                 <Button
                   size="sm"
                   className="bg-[#b88134] text-white"
-                  disabled={addCommentMutation.isPending}
+                  disabled={
+                    addCommentMutation.isPending || !localReplyText.trim()
+                  } // Disable if local text is empty
                   onClick={() => {
+                    // Use the local state for this comment's reply
                     addCommentMutation.mutate({
-                      content: replyText,
+                      content: localReplyText,
                       parentId: comment.id,
                     });
-                  }}
-                >
+                    // Clear local state and close reply box immediately after clicking send
+                    setLocalReplyText('');
+                    setIsReplyingLocally(false);
+                  }}>
                   Kirim
                 </Button>
               </div>
             )}
           </div>
         </div>
-        {/* Recursively render children */}
+        {/* Recursively render children, passing down props */}
         <div className="pl-4 mt-1">
           {children.map((child) => (
+            // Pass only the comment prop
             <CommentNode key={child.id} comment={child} />
           ))}
         </div>
       </div>
     );
-  }
+  });
 
   return (
     <div className="mt-8">
@@ -271,8 +296,7 @@ const CommentThread = ({ questionId }: { questionId: number }) => {
                 <Button
                   className="bg-[#b88134] text-white mt-1"
                   disabled={addCommentMutation.isPending}
-                  onClick={handleNewComment}
-                >
+                  onClick={handleNewComment}>
                   Kirim Komentar
                 </Button>
               </div>
@@ -281,16 +305,15 @@ const CommentThread = ({ questionId }: { questionId: number }) => {
                 <span>
                   <a
                     href="/auth"
-                    className="underline text-[#a76d32] hover:text-[#b88134]"
-                  >
+                    className="underline text-[#a76d32] hover:text-[#b88134]">
                     Masuk
-                  </a>{" "}
+                  </a>{' '}
                   untuk mengomentari atau membalas.
                 </span>
               </div>
             )}
           </div>
-          {/* Show thread */}
+          {/* Show thread, passing only comment prop to top-level nodes */}
           <div>
             {buildThread(null).map((comment) => (
               <CommentNode key={comment.id} comment={comment} />
