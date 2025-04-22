@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import NetlifyDemo from "@/pages/NetlifyDemo";
+import QuestionDetail from "@/pages/QuestionDetail";
 import { AuthProvider } from "@/hooks/useAuth";
 
 const queryClient = new QueryClient();
@@ -24,7 +25,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/netlify-demo" element={<NetlifyDemo />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/question/:id" element={<QuestionDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
