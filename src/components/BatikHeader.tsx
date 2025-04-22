@@ -24,7 +24,7 @@ const BatikHeader = () => {
         borderBottomRightRadius: 36,
         boxShadow: '0 8px 36px #dbbe93cc',
       }}>
-      <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-0 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <img
             src={LOGO_URL}
